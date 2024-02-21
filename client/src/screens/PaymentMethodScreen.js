@@ -8,7 +8,7 @@ import { Store } from '../store';
 
 const PaymentMethodScreen = () => {
     const navigate = useNavigate()
-    const {state , dispatch , ctxDispatch}=useContext(Store)
+    const { state, dispatch: ctxDispatch } = useContext(Store);
     const{
         cart : {shippingAddress, paymentMethod}
         } = state ;
@@ -43,7 +43,7 @@ const PaymentMethodScreen = () => {
               id="PayPal"
               label="PayPal"
               value="PayPal"
-              checked={paymentMethodName === 'PayPal'}
+              checked={paymentMethodName === 'paypal'}
               onChange={(e) => setPaymentMethod(e.target.value)}
             />
           </div>
