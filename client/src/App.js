@@ -1,7 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./App.css";
 import { Routes, Route, Link } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
@@ -22,6 +22,11 @@ import OrderScreen from './screens/OrderScreen';
 import OrderHistoryScreen from "./screens/OrderHistoryScreen";
 import NavbarToggle from "react-bootstrap/NavbarToggle";
 import ProfileScreen from "./screens/ProfileScreen"
+import Button from "react-bootstrap/Button";
+import { getError } from "./utils";
+import axios from "axios";
+import SearchBox from "./components/SearchBox";
+
 
 function App() {
   const { state, dispatch: ctxDispatch } = useContext(Store);
@@ -33,17 +38,39 @@ function App() {
     localStorage.removeItem("shippingAddress");
     localStorage.removeItem("paymentMethod");
   };
+  const [sidebarIsOpen , setSidebarIsOpen]= useState(false)
+  const [categories , setCategories]= useState([])
+  useEffect(()=>{
+    const fetchcategories = async ()=>{
+      try {
+        const {data} = await axios.get(`/api/products/categories`);
+        setCategories(data)
+      } catch (error) {
+        toast.error(getError(error))
+      }
+
+    }
+    fetchcategories()
+  },[])
   return (
-    <div className="d-flex flex-column site-container">
+    <div className={sidebarIsOpen ? "d-flex flex-column site-container active-cont" : "d-flex flex-column site-container"}>
       <ToastContainer position="bottom-center" limit={1} />
       <header>
         <Navbar bg="dark" variant="dark" expand="lg">
           <Container>
+          <Button 
+          variant = "dark"
+          onClick={()=>setSidebarIsOpen(!sidebarIsOpen)}
+          >
+          <i className="fa fa-bars"></i>
+           
+          </Button>
             <LinkContainer to="/">
               <Navbar.Brand>amazona</Navbar.Brand>
             </LinkContainer>
             <NavbarToggle aria-controls="basic-navbar-nav" />
               <Navbar.Collapse id="basic-navbar-nav">
+              <SearchBox />
             <Nav className="me-auto w-100 justify-content-end" >
               <Link to="/cart" className="nav-link">
                 Cart
@@ -80,6 +107,27 @@ function App() {
           </Container>
         </Navbar>
       </header>
+      <div className={
+        sidebarIsOpen ? 'active-nav side-navbar d-flex justify-content-between flex-wrap flex-column':
+        'side-navbar  d-flex justify-content-between flex-wrap flex-column'
+      }>
+        <Nav className="flex-column text-white w-100 p-2">
+            <Nav.Item>
+              <strong>categories</strong>
+            </Nav.Item>
+            {
+              categories.map((category)=>(
+                 <Nav.Item key={category}>
+                  <LinkContainer to={`/searchcategory=${category}`}
+                  onClick={()=>setSidebarIsOpen(false)}>
+                  <Nav.Link>{category}</Nav.Link>
+
+                  </LinkContainer>
+                </Nav.Item>
+              ))
+            }
+        </Nav>
+      </div>
       <main>
         <Container className="mt-3">
           <Routes>
