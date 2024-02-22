@@ -17,16 +17,20 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import ShippingAddressScreen from "./screens/ShippingAddressScreen";
 import SignupScreen from "./screens/SignupScreen";
 import PaymentMethodScreen from "./screens/PaymentMethodScreen";
-import PlaceOrderScreen from './screens/PlaceOrderScreen';
-import OrderScreen from './screens/OrderScreen';
+import PlaceOrderScreen from "./screens/PlaceOrderScreen";
+import OrderScreen from "./screens/OrderScreen";
 import OrderHistoryScreen from "./screens/OrderHistoryScreen";
 import NavbarToggle from "react-bootstrap/NavbarToggle";
-import ProfileScreen from "./screens/ProfileScreen"
+import ProfileScreen from "./screens/ProfileScreen";
 import Button from "react-bootstrap/Button";
 import { getError } from "./utils";
 import axios from "axios";
 import SearchBox from "./components/SearchBox";
-
+import SearchScreeen from "./screens/SearchScreeen";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import DashboardScreen from "./screens/DashboardScreen";
+import ProductListScreen from "./screens/ProductListScreen";
 
 function App() {
   const { state, dispatch: ctxDispatch } = useContext(Store);
@@ -38,94 +42,119 @@ function App() {
     localStorage.removeItem("shippingAddress");
     localStorage.removeItem("paymentMethod");
   };
-  const [sidebarIsOpen , setSidebarIsOpen]= useState(false)
-  const [categories , setCategories]= useState([])
-  useEffect(()=>{
-    const fetchcategories = async ()=>{
-      try {
-        const {data} = await axios.get(`/api/products/categories`);
-        setCategories(data)
-      } catch (error) {
-        toast.error(getError(error))
-      }
+  const [sidebarIsOpen, setSidebarIsOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
 
-    }
-    fetchcategories()
-  },[])
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get(`/api/products/categories`);
+        setCategories(data);
+      } catch (err) {
+        toast.error(getError(err));
+      }
+    };
+    fetchCategories();
+  }, []);
   return (
-    <div className={sidebarIsOpen ? "d-flex flex-column site-container active-cont" : "d-flex flex-column site-container"}>
+    <div
+      className={
+        sidebarIsOpen
+          ? "d-flex flex-column site-container active-cont"
+          : "d-flex flex-column site-container"
+      }
+    >
       <ToastContainer position="bottom-center" limit={1} />
       <header>
         <Navbar bg="dark" variant="dark" expand="lg">
           <Container>
-          <Button 
-          variant = "dark"
-          onClick={()=>setSidebarIsOpen(!sidebarIsOpen)}
-          >
-          <i className="fa fa-bars"></i>
-           
-          </Button>
+            <Button
+              variant="dark"
+              onClick={() => setSidebarIsOpen(!sidebarIsOpen)}
+            >
+              <i className="fas fa-bars"></i>
+            </Button>
+
             <LinkContainer to="/">
               <Navbar.Brand>amazona</Navbar.Brand>
             </LinkContainer>
             <NavbarToggle aria-controls="basic-navbar-nav" />
-              <Navbar.Collapse id="basic-navbar-nav">
+            <Navbar.Collapse id="basic-navbar-nav">
               <SearchBox />
-            <Nav className="me-auto w-100 justify-content-end" >
-              <Link to="/cart" className="nav-link">
-                Cart
-                {cart.cartItems.length > 0 && (
-                  <Badge pill bg="danger">
-                    {cart.cartItems.reduce((a, c) => a + c.quantity, 0)}
-                  </Badge>
-                )}
-              </Link>
-              {userInfo ? (
-                <NavDropdown title={userInfo.name} id="basic-nav-dropdown">
-                  <LinkContainer to="/profile">
-                    <NavDropdown.Item>User Profile</NavDropdown.Item>
-                  </LinkContainer>
-                  <LinkContainer to="/orderhistory">
-                    <NavDropdown.Item>Order History</NavDropdown.Item>
-                  </LinkContainer>
-                  <NavDropdown.Divider />
-                  <Link
-                    className="dropdown-item"
-                    to="#signout"
-                    onClick={signoutHandler}
-                  >
-                    Sign Out
-                  </Link>
-                </NavDropdown>
-              ) : (
-                <Link className="nav-link" to="/signin">
-                  Sign In
+              <Nav className="me-auto w-100 justify-content-end">
+                <Link to="/cart" className="nav-link">
+                  Cart
+                  {cart.cartItems.length > 0 && (
+                    <Badge pill bg="danger">
+                      {cart.cartItems.reduce((a, c) => a + c.quantity, 0)}
+                    </Badge>
+                  )}
                 </Link>
-              )}
-            </Nav>
+                {userInfo ? (
+                  <NavDropdown title={userInfo.name} id="basic-nav-dropdown">
+                    <LinkContainer to="/profile">
+                      <NavDropdown.Item>User Profile</NavDropdown.Item>
+                    </LinkContainer>
+                    <LinkContainer to="/orderhistory">
+                      <NavDropdown.Item>Order History</NavDropdown.Item>
+                    </LinkContainer>
+                    <NavDropdown.Divider />
+                    <Link
+                      className="dropdown-item"
+                      to="#signout"
+                      onClick={signoutHandler}
+                    >
+                      Sign Out
+                    </Link>
+                  </NavDropdown>
+                ) : (
+                  <Link className="nav-link" to="/signin">
+                    Sign In
+                  </Link>
+                )}
+                {userInfo && userInfo.isAdmin &&(
+                  <NavDropdown title="Admin" id="admin-nav-dropdown">
+                  <LinkContainer to="/admin/Dashboard">
+                  <NavDropdown.Item>Dashboard</NavDropdown.Item>
+                  </LinkContainer>
+                  <LinkContainer to="/admin/products">
+                  <NavDropdown.Item>products</NavDropdown.Item>
+                  </LinkContainer>
+                  <LinkContainer to="/admin/orders">
+                  <NavDropdown.Item>orders</NavDropdown.Item>
+                  </LinkContainer>
+                  <LinkContainer to="/admin/users">
+                  <NavDropdown.Item>users</NavDropdown.Item>
+                  </LinkContainer>
+                
+                  </NavDropdown>
+                ) }
+              </Nav>
             </Navbar.Collapse>
           </Container>
         </Navbar>
       </header>
-      <div className={
-        sidebarIsOpen ? 'active-nav side-navbar d-flex justify-content-between flex-wrap flex-column':
-        'side-navbar  d-flex justify-content-between flex-wrap flex-column'
-      }>
+      <div
+        className={
+          sidebarIsOpen
+            ? "active-nav side-navbar d-flex justify-content-between flex-wrap flex-column"
+            : "side-navbar  d-flex justify-content-between flex-wrap flex-column"
+        }
+      >
         <Nav className="flex-column text-white w-100 p-2">
-            <Nav.Item>
-              <strong>categories</strong>
+          <Nav.Item>
+            <strong>categories</strong>
+          </Nav.Item>
+          {categories.map((category) => (
+            <Nav.Item key={category}>
+              <LinkContainer
+                to={{ pathname: "/search", search: `category=${category}` }}
+                onClick={() => setSidebarIsOpen(false)}
+              >
+                <Nav.Link>{category}</Nav.Link>
+              </LinkContainer>
             </Nav.Item>
-            {
-              categories.map((category)=>(
-                 <Nav.Item key={category}>
-                  <LinkContainer to={`/searchcategory=${category}`}
-                  onClick={()=>setSidebarIsOpen(false)}>
-                  <Nav.Link>{category}</Nav.Link>
-
-                  </LinkContainer>
-                </Nav.Item>
-              ))
-            }
+          ))}
         </Nav>
       </div>
       <main>
@@ -135,17 +164,38 @@ function App() {
             <Route path="/" element={<HomeScreen />} />
             <Route path="/cart" element={<CartScreen />} />
             <Route path="/signin" element={<SigninScreen />} />
+            <Route path="/search" element={<SearchScreeen />} />
             <Route path="/shipping" element={<ShippingAddressScreen />}></Route>
             <Route path="/signup" element={<SignupScreen />} />
-            <Route path="/profile" element={<ProfileScreen />} />
-            <Route path="/payment" element={<PaymentMethodScreen />}/>
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileScreen />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/payment" element={<PaymentMethodScreen />} />
             <Route path="/placeorder" element={<PlaceOrderScreen />} />
-            <Route path="/order/:id" element={<OrderScreen />}></Route>
-            <Route path="/orderhistory" element={< OrderHistoryScreen />}></Route>
-            
+            <Route
+              path="/order/:id"
+              element={
+                <ProtectedRoute>
+                  <OrderScreen />
+                </ProtectedRoute>
+              }
+            ></Route>
+            <Route
+              path="/orderhistory"
+              element={
+                <ProtectedRoute>
+                  <OrderHistoryScreen />
+                </ProtectedRoute>
+              }
+            ></Route>
+            <Route path="/admin/products" element={<AdminRoute><ProductListScreen /></AdminRoute>}></Route>
+            <Route path="/admin/Dashboard" element={<AdminRoute><DashboardScreen /></AdminRoute>}></Route>
           </Routes>
-          
-
         </Container>
       </main>
       <footer>
